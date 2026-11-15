@@ -1,0 +1,52 @@
+plugins {
+    id 'fabric-loom' version '1.9-SNAPSHOT'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base { archivesName = project.archives_base_name }
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+}
+
+// FLAT LAYOUT: every file sits in the repo root (no folders needed).
+sourceSets {
+    main {
+        java {
+            srcDirs = ['.']
+            include '*.java'
+        }
+        resources {
+            srcDirs = []
+        }
+    }
+}
+
+def knifeIds = ['karambit', 'bayonet', 'butterfly', 'huntsman', 'flip', 'falchion', 'tanto', 'bowie', 'kukri',
+                'stiletto', 'dagger', 'machete', 'cleaver', 'kris', 'dirk', 'kunai']
+
+processResources {
+    inputs.property "version", project.version
+
+    from('fabric.mod.json') { expand "version": project.version }
+    from('knifeclient.mixins.json')
+    from('en_us.json') { into 'assets/knifeclient/lang' }
+
+    knifeIds.each { id ->
+        from("item_${id}.json") { into 'assets/knifeclient/items'; rename { "${id}.json" } }
+        from("model_${id}.json") { into 'assets/knifeclient/models/item'; rename { "${id}.json" } }
+    }
+    from('tex_knives.png') { into 'assets/knifeclient/textures/item'; rename { 'knives.png' } }
+}
+
+tasks.withType(JavaCompile).configureEach { it.options.release = 21 }
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
